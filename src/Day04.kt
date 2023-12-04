@@ -46,16 +46,14 @@ fun main() {
 
         fun MutableList<Game>.getAdditionalTickets(): List<Game> {
             val additionalTickets = mutableListOf<Game>()
-            this.forEach { game ->
-                if (!game.hasBeenProcessed) {
-                    val matches = game.cardNumbers.filter { game.winningNumbers.contains(it) }.size
-                    for (i in 1..matches) {
-                        additionalTickets.add(
-                            this.first { it.id == game.id + i }.copy()
-                                .apply { hasBeenProcessed = false })
-                    }
-                    game.hasBeenProcessed = true
+            this.filter { !it.hasBeenProcessed }.forEach { game ->
+                val matches = game.cardNumbers.filter { game.winningNumbers.contains(it) }.size
+                for (i in 1..matches) {
+                    additionalTickets.add(
+                        this.first { it.id == game.id + i }.copy()
+                            .apply { hasBeenProcessed = false })
                 }
+                game.hasBeenProcessed = true
             }
             return additionalTickets
         }
