@@ -1,13 +1,10 @@
+import java.util.Date
+
 fun main() {
     fun part1(input: List<String>): Int {
         fun calculateScore(matches: Int): Int {
             if (matches == 0) return 0
-            if (matches == 1) return 1
-            var score = 1
-            for (i in 2..matches) {
-                score *= 2
-            }
-            return score
+            return 1 shl (matches - 1)
         }
 
         var answer = 0
@@ -41,19 +38,29 @@ fun main() {
 
     fun part2(input: List<String>): Int {
         data class Game(val id: Int, val winningNumbers: List<Int>, val cardNumbers: List<Int>) {
-            var hasBeenProcessed = false
+            val matches = cardNumbers.filter { winningNumbers.contains(it) }.size
+            val additionalTickets = mutableListOf<Game>()
+            var initialized = false
+
+            fun init(dictionary: List<Game>) {
+                if (!initialized) {
+                    if (matches > 0) {
+                        for (i in 1..matches) {
+                            val match = dictionary.first { it.id == id + i }
+                            match.init(dictionary)
+                            additionalTickets.add(match)
+                        }
+                    }
+
+                    initialized = true
+                }
+            }
         }
 
         fun MutableList<Game>.getAdditionalTickets(): List<Game> {
             val additionalTickets = mutableListOf<Game>()
-            this.filter { !it.hasBeenProcessed }.forEach { game ->
-                val matches = game.cardNumbers.filter { game.winningNumbers.contains(it) }.size
-                for (i in 1..matches) {
-                    additionalTickets.add(
-                        this.first { it.id == game.id + i }.copy()
-                            .apply { hasBeenProcessed = false })
-                }
-                game.hasBeenProcessed = true
+            this.forEach { game ->
+                additionalTickets.addAll(game.additionalTickets)
             }
             return additionalTickets
         }
@@ -83,11 +90,18 @@ fun main() {
             }
             games.add(Game(cardId, winningNumbers, cardNumbers))
         }
-        while (games.any { !it.hasBeenProcessed }) {
-            val additionalTickets = games.getAdditionalTickets()
-            games.addAll(additionalTickets)
+        var count = games.size
+        games.forEach {
+            it.init(games)
         }
-        return games.size
+        val queue = mutableListOf<Game>().apply { addAll(games) }
+        while (queue.isNotEmpty()) {
+            val additionalTickets = queue.getAdditionalTickets()
+            count += additionalTickets.size
+            queue.clear()
+            queue.addAll(additionalTickets)
+        }
+        return count
     }
 
     val testInput1 = readInput("Day04_test1")
@@ -98,5 +112,8 @@ fun main() {
 
     val testInput2 = readInput("Day04_test2")
     check(part2(testInput2) == 30)
-    part2(input).println()
+    val start = Date()
+    part2(input).println() // 9236992
+    val end = Date()
+    println(end.time - start.time)
 }
