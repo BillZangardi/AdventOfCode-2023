@@ -1,4 +1,6 @@
-import java.util.Date
+import java.util.LinkedList
+import java.util.Queue
+import kotlin.time.measureTime
 
 fun main() {
     fun part1(input: List<String>): Int {
@@ -37,17 +39,16 @@ fun main() {
     }
 
     fun part2(input: List<String>): Int {
-        data class Game(val id: Int, val winningNumbers: List<Int>, val cardNumbers: List<Int>) {
-            val matches = cardNumbers.filter { winningNumbers.contains(it) }.size
-            val additionalTickets = mutableListOf<Game>()
+        data class Game(val id: Int, val winningNumbers: Set<Int>, val cardNumbers: Set<Int>) {
+            val matches = winningNumbers.intersect(cardNumbers).size
+            val additionalTickets = mutableSetOf<Game>()
             var initialized = false
 
-            fun init(dictionary: List<Game>) {
+            fun init(dictionary: Set<Game>) {
                 if (!initialized) {
                     if (matches > 0) {
                         for (i in 1..matches) {
                             val match = dictionary.first { it.id == id + i }
-                            match.init(dictionary)
                             additionalTickets.add(match)
                         }
                     }
@@ -57,19 +58,19 @@ fun main() {
             }
         }
 
-        fun MutableList<Game>.getAdditionalTickets(): List<Game> {
+        fun Queue<Game>.getAdditionalTickets(): List<Game> {
             val additionalTickets = mutableListOf<Game>()
-            this.forEach { game ->
-                additionalTickets.addAll(game.additionalTickets)
+            while (isNotEmpty()) {
+                additionalTickets.addAll(poll().additionalTickets)
             }
             return additionalTickets
         }
 
-        val games = mutableListOf<Game>()
+        val games = mutableSetOf<Game>()
         input.forEach { line ->
             var cardId = 0
-            val winningNumbers = mutableListOf<Int>()
-            val cardNumbers = mutableListOf<Int>()
+            val winningNumbers = mutableSetOf<Int>()
+            val cardNumbers = mutableSetOf<Int>()
             line.split(":", "|").forEachIndexed { index, s ->
                 val split = s.trim().split(" ")
                 when (index) {
@@ -94,11 +95,10 @@ fun main() {
         games.forEach {
             it.init(games)
         }
-        val queue = mutableListOf<Game>().apply { addAll(games) }
+        val queue: Queue<Game> = LinkedList<Game>().apply { addAll(games) }
         while (queue.isNotEmpty()) {
             val additionalTickets = queue.getAdditionalTickets()
             count += additionalTickets.size
-            queue.clear()
             queue.addAll(additionalTickets)
         }
         return count
@@ -108,12 +108,13 @@ fun main() {
     check(part1(testInput1) == 13)
 
     val input = readInput("Day04")
-    part1(input).println()
+    measureTime {
+        part1(input).println()
+    }.println()
 
     val testInput2 = readInput("Day04_test2")
     check(part2(testInput2) == 30)
-    val start = Date()
-    part2(input).println() // 9236992
-    val end = Date()
-    println(end.time - start.time)
+    measureTime {
+        part2(input).println() // 9236992
+    }.println()
 }
