@@ -91,17 +91,19 @@ fun main() {
             }
         }
         seedRanges.sortBy { it.first }
-        val copy = mutableListOf<LongRange>().apply {
-            addAll(seedRanges)
-        }.sortBy { it.last }
         var lowestLocation: Long? = null
-        seedRanges.forEach { seeds ->
-            seeds.forEach {  seed ->
+        seedRanges.forEachIndexed seedRangesLoop@{ index, seeds ->
+            seeds.forEach { seed ->
+                for (i in 0..<index) {
+                    if (seedRanges[i].contains(seed)) {
+                        return@seedRangesLoop
+                    }
+                }
                 var currentCoord = seed
                 mapList.forEach { map ->
                     map.firstOrNull { it.range2.contains(currentCoord) }?.let {
-                        val index = currentCoord - it.range2.first
-                        currentCoord = it.range1.first + index
+                        val rangeIndex = currentCoord - it.range2.first
+                        currentCoord = it.range1.first + rangeIndex
                     }
                 }
                 if (lowestLocation == null || currentCoord < lowestLocation!!) {
