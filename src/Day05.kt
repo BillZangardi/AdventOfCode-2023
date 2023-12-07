@@ -1,7 +1,7 @@
 import kotlin.time.measureTime
 
 fun main() {
-    class Mapping(val range1: LongRange, val range2: LongRange)
+    class Mapping(val source: LongRange, val destination: LongRange)
 
     fun part1(input: String): Long {
         val seeds = mutableListOf<Long>()
@@ -41,9 +41,9 @@ fun main() {
         seeds.forEach { seed ->
             var currentCoord = seed
             mapList.forEach { map ->
-                map.firstOrNull { it.range2.contains(currentCoord) }?.let {
-                    val index = currentCoord - it.range2.first
-                    currentCoord = it.range1.first + index
+                map.firstOrNull { it.destination.contains(currentCoord) }?.let {
+                    val index = currentCoord - it.destination.first
+                    currentCoord = it.source.first + index
                 }
             }
             if (lowestLocation == null || currentCoord < lowestLocation!!) {
@@ -92,19 +92,20 @@ fun main() {
         }
         seedRanges.sortBy { it.first }
         var lowestLocation: Long? = null
-        seedRanges.forEachIndexed seedRangesLoop@{ index, seeds ->
-            seeds.forEach { seed ->
+        seedRanges.forEachIndexed { index, seeds ->
+            seeds.forEach seedsLoop@{ seed ->
+                var currentCoord = seed
                 for (i in 0..<index) {
-                    if (seedRanges[i].contains(seed)) {
-                        return@seedRangesLoop
+                    if (seedRanges[i].contains(currentCoord)) {
+                        return@seedsLoop
                     }
                 }
-                var currentCoord = seed
                 mapList.forEach { map ->
-                    map.firstOrNull { it.range2.contains(currentCoord) }?.let {
-                        val rangeIndex = currentCoord - it.range2.first
-                        currentCoord = it.range1.first + rangeIndex
-                    }
+                    map.firstOrNull { it.destination.contains(currentCoord) }
+                        ?.let {
+                            val rangeIndex = currentCoord - it.destination.first
+                            currentCoord = it.source.first + rangeIndex
+                        }
                 }
                 if (lowestLocation == null || currentCoord < lowestLocation!!) {
                     lowestLocation = currentCoord
