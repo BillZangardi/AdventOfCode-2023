@@ -48,18 +48,11 @@ fun main() {
             if (handType.ordinal > other.handType.ordinal) return 1 // Lower hand
             if (handType == other.handType) {
                 cards.forEachIndexed { index, c ->
-                    if (playJoker) {
-                        if (rankWithJoker.indexOf(c) < rankWithJoker.indexOf(other.cards[index])) {
-                            return -1 // Higher kicker
-                        } else if (rankWithJoker.indexOf(c) > rankWithJoker.indexOf(other.cards[index])) {
-                            return 1 // Lower kicker
-                        }
-                    } else {
-                        if (rankWithoutJoker.indexOf(c) < rankWithoutJoker.indexOf(other.cards[index])) {
-                            return -1 // Higher kicker
-                        } else if (rankWithoutJoker.indexOf(c) > rankWithoutJoker.indexOf(other.cards[index])) {
-                            return 1 // Lower kicker
-                        }
+                    val rank = if (playJoker) rankWithJoker else rankWithoutJoker
+                    if (rank.indexOf(c) < rank.indexOf(other.cards[index])) {
+                        return -1 // Higher kicker
+                    } else if (rank.indexOf(c) > rank.indexOf(other.cards[index])) {
+                        return 1 // Lower kicker
                     }
                 }
             }
@@ -68,22 +61,24 @@ fun main() {
     }
 
     fun part1(input: List<String>): Int {
-        val hands = mutableListOf<Hand>()
-        input.forEach { line ->
-            val (cards, bet) = line.split(" ")
-            hands.add(Hand(cards.toCharArray(), bet.toInt()))
+        val hands = mutableListOf<Hand>().apply {
+            input.forEach { line ->
+                val (cards, bet) = line.split(" ")
+                add(Hand(cards.toCharArray(), bet.toInt()))
+            }
+            sortBy { it }
         }
-        hands.sortBy { it }
         return hands.sumOf { it.bet * (hands.size - hands.indexOf(it)) }
     }
 
     fun part2(input: List<String>): Int {
-        val hands = mutableListOf<Hand>()
-        input.forEach { line ->
-            val (cards, bet) = line.split(" ")
-            hands.add(Hand(cards.toCharArray(), bet.toInt(), true))
+        val hands = mutableListOf<Hand>().apply {
+            input.forEach { line ->
+                val (cards, bet) = line.split(" ")
+                add(Hand(cards.toCharArray(), bet.toInt(), true))
+            }
+            sortBy { it }
         }
-        hands.sortBy { it }
         return hands.sumOf { it.bet * (hands.size - hands.indexOf(it)) }
     }
 
